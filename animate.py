@@ -1,5 +1,5 @@
 from matplotlib import pyplot as plt, animation
-from typing import Optional
+from typing import Optional, Tuple, List, Dict
 
 import networkx as nx
 import random
@@ -7,8 +7,13 @@ import logging
 import numpy as np
 
 logger = logging.getLogger(__name__)
-
-
+def init_logger(logger):
+    logger.setLevel(logging.INFO)
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    ch = logging.StreamHandler()
+    ch.setFormatter(formatter)
+    logger.addHandler(ch)
+init_logger(logger)
 MIN_ALPHA = 0.2
 MAX_ALPHA = 0.8
 MIN_WEIGHT = .5
@@ -25,10 +30,15 @@ NODE_OPTIONS = {
 EDGE_OPTIONS = {
     'style': 'dashed',
 }
-logger.info("Node options: {}".format(NODE_OPTIONS))
-logger.info("Edge options: {}".format(EDGE_OPTIONS))
+logger.info("Node options: {}".format(NODE_OPTIONS.keys()))
+logger.info("Edge options: {}".format(EDGE_OPTIONS.keys()))
 
 def graph_from_info(graph_info:dict)->nx.Graph:
+    """
+    Takes graph_info and initializes a networkx graph
+    :param graph_info: dict containing nodes and edges
+    :return: nx.Graph object
+    """
     nodes = graph_info['nodes']
     G = nx.Graph()
     
@@ -50,7 +60,13 @@ def graph_from_info(graph_info:dict)->nx.Graph:
 
     return G
 
-def read_coords(lines, start):
+def read_coords(lines:List[str], start: int)->Dict[int, Tuple[float, float]]:
+    """
+    Reads coordinates from input file
+    :param lines: list of lines from input file
+    :param start: index to start reading from
+    :return: dict of node: (x, y) coordinates
+    """
     logger.info("Reading node coordinates")
     nodes = {}
     for line in lines[start:]:
@@ -65,6 +81,12 @@ def read_coords(lines, start):
     return nodes
 
 def read_tsp_file(path, type):
+    """
+    Reads tsp file and returns a dict of graph info
+    :param path: path to tsp file
+    :param type: UNHANDLED -- type of tsp file instance to read
+    :return: dict of graph info
+    """
     with open(path, "r") as f:
         lines = f.readlines()
         lines = [line.strip() for line in lines]
@@ -87,32 +109,14 @@ def read_tsp_file(path, type):
         
     return graph_info
 
-def draw_network(G, pos, options):
-    nx.draw_networkx_nodes(G, pos, **NODE_OPTIONS)
-
-    # get max min weight and pheromone values
-    max_weight = max([value['weight'] for key, value in G.edges.items()])
-    min_weight = min([value['weight'] for key, value in G.edges.items()])
-    max_pheromones = max([value['pheromones'] for key, value in G.edges.items()])
-    min_pheromones = min([value['pheromones'] for key, value in G.edges.items()])
-
-    for key, value in G.edges.items():
-        weight, pheromones = value['weight'], value['pheromones']
-        # map alpha between 0.2 and 0.8 based on pheromone value
-        alpha = np.interp(pheromones, [min_pheromones, max_pheromones], [MIN_ALPHA, MAX_ALPHA])
-        # map width between 1 and 3 based on weight value
-        width = np.interp(weight, [min_weight, max_weight], [MIN_WEIGHT, MAX_WEIGHT])
-        nx.draw_networkx_edges(G,
-                               pos = pos,
-                               edgelist=[key],
-                               alpha=alpha,
-                            #    edge_colors=edge_color, 
-                               width=width,
-                               **EDGE_OPTIONS) #loop through edges and draw them
-
-
 class Animator():
-    def __init__(self, path):
+    def __init__(self, path: str):
+        """
+        Inits the animator class with a tsp file
+        The animator class will read the tsp file and create a networkx graph 
+        and take care of drawing and updating the graph
+        :param path: path to tsp file
+        """
         self.path = path
         self.tsp_info = read_tsp_file(path, 'tsp')
         self.G = graph_from_info(self.tsp_info)
@@ -128,7 +132,10 @@ class Animator():
         self.max_pheromones = max([value['pheromones'] for key, value in self.G.edges.items()])
         self.min_pheromones = min([value['pheromones'] for key, value in self.G.edges.items()])
 
-    def get_random_init(self):
+    def get_random_init(self)->Tuple[Dict[Tuple[int, int], float], Dict[Tuple[int, int], float]]:
+        """
+        Randomly inits pheromones and ants for the network
+        """
         pheromones = {}
         ants = {}
 
@@ -139,8 +146,8 @@ class Animator():
         return pheromones, ants
 
     def update_network(self,
-        pheromones: dict,
-        ants: Optional[dict]):
+        pheromones: Dict[Tuple[int, int], float],
+        ants: Optional[Dict]):
         """
         Updates the network with the new pheromone and ant values.
         Both dictionaries are accessed by edge key e.g. (0, 1)
