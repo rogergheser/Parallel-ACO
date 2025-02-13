@@ -10,8 +10,11 @@
 #define BETA 2.0            // 3.0
 #define EVAPORATION 0.5     // [0.4, 1.0] - 0.8 - Dorigo et al. found 0.99 for TSP
 #define Q 100.0
-
-char* filename = "./tsplib/fnl4461.tsp";
+#define DEBUG 0
+// char* filename = "./tsplib/fnl4461.tsp";
+char* filename = "./tsplib/burma_int14.tsp";
+char pheromones_path[50]; // to save pheromones
+char ant_tours_path[50]; // to save ants
 int num_cities;
 double **distance;
 double **pheromones; 
@@ -26,6 +29,36 @@ void skip_lines(int lines, FILE *f) {
         fgets(line, 100, f);
 }
 
+void write_int_matrix(int** mat, char* path) { 
+    FILE *file = fopen(path, "w+");
+    if (!file) {
+        perror("Error opening file");
+        exit(EXIT_FAILURE);
+    }
+    for (int i = 0; i < num_cities; i++) {
+        for (int j = 0; j < num_cities; j++) {
+            fprintf(file, "%d ", mat[i][j]);
+        }
+        fprintf(file, "\n");
+    }
+    fclose(file);
+}
+
+void write_double_matrix(double** mat, char* path) { 
+    FILE *file = fopen(path, "w+");
+    if (!file) {
+        perror("Error opening file");
+        exit(EXIT_FAILURE);
+    }
+    for (int i = 0; i < num_cities; i++) {
+        for (int j = 0; j < num_cities; j++) {
+            fprintf(file, "%lf ", mat[i][j]);
+        }
+        fprintf(file, "\n");
+    }
+    fclose(file);
+}
+
 void init_tsp() {
     FILE *file = fopen(filename, "r");
     if (!file) {
@@ -35,7 +68,7 @@ void init_tsp() {
 
     skip_lines(3, file);    
     fscanf(file, "DIMENSION : %d", &num_cities);  // SOME FILES CONTAIN A SPACE BETWEEN 'DIMENSION' AND ':', OTHERS DO NOT
-    skip_lines(3, file);
+    skip_lines(5, file);
 
     // Allocate memory for coordinates and matrices
     double *x_coords = (double *)malloc(num_cities * sizeof(double));
@@ -162,6 +195,8 @@ void update_pheromones(int **ant_tours, double *ant_costs) {
 }
 
 int main() {
+    printf("Starting...\n");
+    fflush(stdout);
     init_tsp();
     srand(time(NULL));
 
@@ -173,6 +208,11 @@ int main() {
         for (int i = 0; i < NUM_ANTS; i++)
             ant_tours[i] = (int *)malloc(num_cities * sizeof(int));
         double ant_costs[NUM_ANTS];
+        // For saving values
+
+        sprintf(pheromones_path, "./data/pheromones/%d.txt", iteration);
+        sprintf(ant_tours_path, "./data/ant_tours/%d.txt", iteration);
+        
         
         // Step 1: Construct solutions
         for (int ant = 0; ant < NUM_ANTS; ant++) {
@@ -193,7 +233,10 @@ int main() {
 
         // Step 3: Update pheromones
         update_pheromones(ant_tours, ant_costs);
-
+        if (DEBUG){
+            write_double_matrix(pheromones, pheromones_path);
+            write_int_matrix(ant_tours, ant_tours_path);
+        }
         printf("Iteration %d: Best Cost = %f\n", iteration + 1, best_cost); // TODO: update best cost
 
         for (int i = 0; i < NUM_ANTS; i++)
