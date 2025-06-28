@@ -46,7 +46,8 @@ double rand_double() {
 
 void skip_lines(int lines, FILE *f) {
     char line[100];
-    for(int i = 0; i < lines; i++)
+    int i;
+    for(i = 0; i < lines; i++)
         fgets(line, 100, f);
 }
 
@@ -60,6 +61,7 @@ int getIndex(int i, int j) {
 
 void init_tsp() {
     FILE *file = fopen(filename, "r");
+    int i, j, idx;
     if (!file) {
         perror("Error opening file");
         exit(EXIT_FAILURE);
@@ -81,17 +83,18 @@ void init_tsp() {
     }
     
     // Read the coordinates
-    for (int i = 0; i < NUM_CITIES; i++) {
+    for (i = 0; i < NUM_CITIES; i++) {
         int index;
         fscanf(file, "%d %lf %lf", &index, &x_coords[i], &y_coords[i]);
     }
     
     // Compute distances matrix
-    for (int i = 0; i < NUM_CITIES; i++) {
-        for (int j = i + 1; j < NUM_CITIES; j++) {
-            int idx = getIndex(i, j);
-            double dx = x_coords[i] - x_coords[j];
-            double dy = x_coords[i] - y_coords[j];
+    for (i = 0; i < NUM_CITIES; i++) {
+        for (j = i + 1; j < NUM_CITIES; j++) {
+            double dx, dy;
+            idx = getIndex(i, j);
+            dx = x_coords[i] - x_coords[j];
+            dy = x_coords[i] - y_coords[j];
             distance[idx] = sqrt(dx * dx + dy * dy);
             pheromones[idx] = 1.0;
         }
@@ -103,12 +106,16 @@ void init_tsp() {
 }
 
 int select_next_city(int current_city, int *visited) {
-    //double *probabilities = (double *)malloc(NUM_CITIES * sizeof(double));
-    for (int i = 0; i < NUM_CITIES; i++)
-        probabilities[i] = 0.0;
+    int i;
     double sum = 0.0;
+    double r, cumulative;
+    
+    //double *probabilities = (double *)malloc(NUM_CITIES * sizeof(double));
+    for (i = 0; i < NUM_CITIES; i++)
+        probabilities[i] = 0.0;
+    
     // Calculate probabilities
-    for (int i = 0; i < NUM_CITIES; i++) {
+    for (i = 0; i < NUM_CITIES; i++) {
         if (!visited[i] && current_city != i) {
             int idx = (current_city < i) ? getIndex(current_city, i) : getIndex(i, current_city);
             double tau = pow(pheromones[idx], ALPHA);
@@ -121,15 +128,15 @@ int select_next_city(int current_city, int *visited) {
     }
 
     // Normalize probabilities
-    for (int i = 0; i < NUM_CITIES; i++) {
+    for (i = 0; i < NUM_CITIES; i++) {
         probabilities[i] /= sum;
     }
     
     
     // Roulette wheel selection
-    double r = rand_double();
-    double cumulative = 0.0;
-    for (int i = 0; i < NUM_CITIES; i++) {
+    r = rand_double();
+    cumulative = 0.0;
+    for (i = 0; i < NUM_CITIES; i++) {
         cumulative += probabilities[i];
         if (r <= cumulative) {
             //free(probabilities);
@@ -143,16 +150,17 @@ int select_next_city(int current_city, int *visited) {
 }
 
 void construct_solution(int *tour) {
+    int i, step, current_city, next_city;
     //int *visited = (int *)calloc(NUM_CITIES, sizeof(int));
-    for (int i = 0; i < NUM_CITIES; i++)
+    for (i = 0; i < NUM_CITIES; i++)
         visited[i] = 0;
-    int current_city = rand() % NUM_CITIES;
+    current_city = rand() % NUM_CITIES;
     //printf("I am starting in city %d \n", current_city);
     tour[0] = current_city;
     visited[current_city] = 1;
 
-    for (int step = 1; step < NUM_CITIES; step++) {
-        int next_city = select_next_city(current_city, visited);
+    for (step = 1; step < NUM_CITIES; step++) {
+        next_city = select_next_city(current_city, visited);
         //printf("I am going to city %d, step %d \n", next_city, step);
         tour[step] = next_city;
         visited[next_city] = 1;
@@ -163,12 +171,14 @@ void construct_solution(int *tour) {
 
 double evaluate_tour(int *tour) {
     double total_distance = 0.0;
-    for (int i = 0; i < NUM_CITIES - 1; i++) {
-        int idx = (tour[i] < tour[i + 1]) ? getIndex(tour[i], tour[i + 1]) : getIndex(tour[i + 1], tour[i]);
+    int i, idx;
+    
+    for (i = 0; i < NUM_CITIES - 1; i++) {
+        idx = (tour[i] < tour[i + 1]) ? getIndex(tour[i], tour[i + 1]) : getIndex(tour[i + 1], tour[i]);
         total_distance += distance[idx];
     }
 
-    int idx = (tour[NUM_CITIES - 1] < tour[0]) ? getIndex(tour[NUM_CITIES - 1], tour[0]) : getIndex(tour[0], tour[NUM_CITIES - 1]);
+    idx = (tour[NUM_CITIES - 1] < tour[0]) ? getIndex(tour[NUM_CITIES - 1], tour[0]) : getIndex(tour[0], tour[NUM_CITIES - 1]);
     total_distance += distance[idx];
 
     return total_distance;
@@ -196,45 +206,48 @@ void update_pheromones(int **ant_tours, double *ant_costs) {
 */
 
 void update_pheromones(AntTour *ant_tours, int num_ants) {
+    int i, j, k, idx, from, to, temp;
+    double contribution;
+    
     // Evaporate pheromones
-    for (int i = 0; i < NUM_CITIES; i++) {
-        for (int j = i + 1; j < NUM_CITIES; j++) {  // Only update upper triangular part
-            int idx = getIndex(i, j);
+    for (i = 0; i < NUM_CITIES; i++) {
+        for (j = i + 1; j < NUM_CITIES; j++) {  // Only update upper triangular part
+            idx = getIndex(i, j);
             pheromones[idx] *= (1.0 - EVAPORATION);
         }
     }
     
     // Deposit pheromones based on ant tours
-    for (int k = 0; k < num_ants; k++) {
-        double contribution = Q / ant_tours[k].tourLength;
+    for (k = 0; k < num_ants; k++) {
+        contribution = Q / ant_tours[k].tourLength;
 
-        for (int i = 0; i < NUM_CITIES - 1; i++) {
-            int from = ant_tours[k].tour[i];
-            int to = ant_tours[k].tour[i + 1];
+        for (i = 0; i < NUM_CITIES - 1; i++) {
+            from = ant_tours[k].tour[i];
+            to = ant_tours[k].tour[i + 1];
             //printf("%d, %d, From: %d - To: %d\n", k, i, from, to);
             // Ensure from < to before getting index
             if (from > to) {
-                int temp = from;
+                temp = from;
                 from = to;
                 to = temp;
             }
             
-            int idx = getIndex(from, to);
+            idx = getIndex(from, to);
             pheromones[idx] += contribution;
         }
         
         // Complete the tour (return to starting city)
-        int from = ant_tours[k].tour[NUM_CITIES - 1];
-        int to = ant_tours[k].tour[0];
+        from = ant_tours[k].tour[NUM_CITIES - 1];
+        to = ant_tours[k].tour[0];
         
         // Ensure from < to before getting index
         if (from > to) {
-            int temp = from;
+            temp = from;
             from = to;
             to = temp;
         }
         if (from != to) {
-            int idx = getIndex(from, to);
+            idx = getIndex(from, to);
             pheromones[idx] += contribution;
         }
     }
@@ -243,6 +256,12 @@ void update_pheromones(AntTour *ant_tours, int num_ants) {
 int main() {
     int comm_size, comm_rank;
     double start_time, end_time;
+    int ants_per_proc, num_ants;
+    AntTour *ant_tours;
+    MPI_Datatype tourType;
+    int best_tour[NUM_CITIES];
+    double best_cost = DBL_MAX;
+    int iter, i, p;
 
     MPI_Init(NULL, NULL);
     MPI_Comm_size(MPI_COMM_WORLD, &comm_size);
@@ -252,25 +271,21 @@ int main() {
     srand(time(NULL) + comm_rank); // Different seed for each process
     
     // remove excess ants for equal distribution
-    int ants_per_proc = NUM_ANTS / (comm_size);
-    int num_ants = ants_per_proc * (comm_size);
+    ants_per_proc = NUM_ANTS / (comm_size);
+    num_ants = ants_per_proc * (comm_size);
     printf("Ants: %d\n", ants_per_proc);
     
-    AntTour *ant_tours = (AntTour *)malloc(ants_per_proc * sizeof(AntTour));
+    ant_tours = (AntTour *)malloc(ants_per_proc * sizeof(AntTour));
 
-    MPI_Datatype tourType;
     defineAntTourMPIType(&tourType);
-
-    int best_tour[NUM_CITIES];
-    double best_cost = DBL_MAX;
 
     if (comm_rank == 0)
         start_time = MPI_Wtime();
 
-    for (int iter = 0; iter < NUM_ITERATIONS; iter++) {   
+    for (iter = 0; iter < NUM_ITERATIONS; iter++) {   
         double s1, e1, s2, e2;
         s1 = MPI_Wtime();
-        for (int i = 0; i < ants_per_proc; i++) {
+        for (i = 0; i < ants_per_proc; i++) {
             if (i == 0)
                 s2 = MPI_Wtime();
             construct_solution(ant_tours[i].tour);
@@ -287,12 +302,12 @@ int main() {
             AntTour *all_tours = (AntTour *)malloc(num_ants * sizeof(AntTour));
             memcpy(&all_tours[0], ant_tours, ants_per_proc * sizeof(AntTour));
 
-            for (int p = 1; p < comm_size; p++) {
+            for (p = 1; p < comm_size; p++) {
                 MPI_Recv(&all_tours[p * ants_per_proc], ants_per_proc, tourType, p, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
             }
             
             // Find best tour in current iteration
-            for (int i = 0; i < num_ants; i++) {
+            for (i = 0; i < num_ants; i++) {
                 all_tours[i].tourLength = evaluate_tour(all_tours[i].tour);
                 if (all_tours[i].tourLength < best_cost) {
                     best_cost = all_tours[i].tourLength;
@@ -317,7 +332,7 @@ int main() {
         printf("Best Tour Length: %lf\n", best_cost);
         /*
         printf("Best Tour Path: ");
-        for (int i = 0; i < NUM_CITIES; i++) {
+        for (i = 0; i < NUM_CITIES; i++) {
             printf("%d ", best_tour[i]);
         }
         printf("\n");
