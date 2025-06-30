@@ -7,7 +7,7 @@
 #include <string.h>
 #include <mpi.h>
 
-#define NUM_ANTS 800        // [50, 800]
+#define NUM_ANTS 1024        // [50, 800]
 #define NUM_ITERATIONS 10
 #define ALPHA 4.0           // [3.0, 5.0]
 #define BETA 3.0            // 3.0
@@ -230,9 +230,6 @@ int main() {
     // remove excess ants for equal distribution
     ants_per_proc = NUM_ANTS / (comm_size);
     num_ants = ants_per_proc * (comm_size);
-    if (comm_rank == 0) {
-        printf("Ants: %d\n", ants_per_proc);
-    }
     
     ant_tours = (AntTour *)malloc(ants_per_proc * sizeof(AntTour));
 
@@ -243,18 +240,12 @@ int main() {
     }
 
     for (iter = 0; iter < NUM_ITERATIONS; iter++) {   
-        double s1, e1;
-        s1 = MPI_Wtime();
         for (i = 0; i < MATRIX_DIM; i++)
             local_contr[i] = 0.0;
 
         for (i = 0; i < ants_per_proc; i++) {
             construct_solution(ant_tours[i].tour);
             ant_tours[i].tourLength = evaluate_tour(ant_tours[i].tour);
-        }
-        e1 = MPI_Wtime();
-        if (comm_rank == 0) {
-            printf("Time per proc: %lf\n", e1 - s1);
         }
         
         local_pheromones(ant_tours, ants_per_proc);
@@ -302,6 +293,7 @@ int main() {
         printf("Time: %lf\n", end_time - start_time);
     }
 
+    MPI_Type_free(&tourType);
     MPI_Finalize();
     free(ant_tours);
     free(distance);
