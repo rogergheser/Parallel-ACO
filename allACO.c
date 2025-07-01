@@ -1,3 +1,12 @@
+/*
+This is the parallel implementation where all nodes are working together
+TODO:
+
+    - use openmp
+    - do hybrid
+    - check todo at line 229 (in function update_pheromones)
+    - use all reduce to minimise the tour cost
+*/
 #include <stdio.h>
 #include <stdlib.h>
 #include <stddef.h>
@@ -218,6 +227,10 @@ void update_pheromones(AntTour *ant_tours, int num_ants) {
     }
     
     // Deposit pheromones based on ant tours
+    // TODO: Adjust implementation to use MPI all reduce sum
+    // Define a new matrix B where we average the contributions of all slaves.
+    // Finally update original pheromone matrix A as
+    // A = A + evaporation + B
     for (k = 0; k < num_ants; k++) {
         contribution = Q / ant_tours[k].tourLength;
 

@@ -1,3 +1,10 @@
+
+# General
+debug
+
+# Python
+**/__pycache__
+**/.DS_Store
 # Prerequisites
 *.d
 
