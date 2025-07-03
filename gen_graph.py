@@ -7,6 +7,9 @@ def generate_graph(size, num_nodes):
     nodes = list(product(range(size), repeat=2))
     
     selected_nodes = random.sample(nodes, k=num_nodes)
+    selected_nodes = sorted(
+        selected_nodes, key=lambda x: (x[1], x[0])  # Sort by y, then x coordinate
+    )
     assert len(set(selected_nodes)) == num_nodes, "Duplicate nodes were selected"
     return selected_nodes
 
@@ -35,5 +38,5 @@ if __name__ == "__main__":
             "EDGE_WEIGHT_TYPE : EUC_2D\n"
             "NODE_COORD_SECTION\n"
         )
-        for i, node in enumerate(sorted(selected_nodes, key=lambda x: x[1])):
+        for i, node in enumerate(selected_nodes):
             output_file.write(f"{i+1}  {node[0]}  {node[1]}\n")
