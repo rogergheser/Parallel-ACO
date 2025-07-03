@@ -14,5 +14,6 @@ NODES=(2 4 8 16 32 64 128)  # replace with your actual node names
 
 for NODE in "${NODES[@]}"; do
     echo "Running on $NODE"
-    mpirun -n $NODE parallel
+    {
+        time mpirun -n $NODE parallel;} 2>> "time/parallel.txt"
 done

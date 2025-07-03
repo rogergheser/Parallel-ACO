@@ -19,8 +19,8 @@ module load mpich-3.2
 NODES=(2 4 8 16 32 64 128)  # replace with your actual node names
 
 for NODE in "${NODES[@]}"; do
-    echo "Running on $NODE"
-    mpirun.actual -n $NODE \
-    -ppn $OMP_NUM_THREADS \
-    parallel
+    echo "Running $NODE"
+    {   time mpirun.actual -n $NODE \
+        -ppn $OMP_NUM_THREADS \
+        parallel; } 2>> "time/hybrid.txt"
 done
