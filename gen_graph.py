@@ -6,7 +6,8 @@ import random
 def generate_graph(size, num_nodes):
     nodes = list(product(range(size), repeat=2))
     
-    selected_nodes = random.choices(nodes, k=num_nodes)
+    selected_nodes = random.sample(nodes, k=num_nodes)
+    assert len(set(selected_nodes)) == num_nodes, "Duplicate nodes were selected"
     return selected_nodes
 
 if __name__ == "__main__":
