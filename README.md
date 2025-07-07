@@ -5,7 +5,15 @@ A parallel implementation of Ant Colony Optimisation for TSP with mpic.
 In this project we implement three algorithms to increase the performance of Ant Colony Optimisation whilst using multiple processes, threads or both.
 
 ## Table of Contents
-famo dopo
+- [Key Features](#key-features)
+- [Project Structure](#project-structure)
+- [Datasets](#datasets)
+- [Dependencies](#dependencies)
+- [Cluster Configuration](#cluster-configuration)
+- [How to Run](#how-to-run)
+- [Performance Analysis](#performance-analysis)
+- [Scripts](#scripts)
+- [Future Improvements](#future-improvements)
 
 ## Key Features
 - **Hybrid Parallelization**: Combined MPI+OpenMP implementation
@@ -39,9 +47,49 @@ famo dopo
 │   └── plotting.py     # Script to plotting performance metrics
 └── tsplib         # TSPLIB dataset
 ```
+
 ## Datasets
 We use the following datasets for testing:
 * [TSPLIB](https://github.com/mastqe/tsplib)
     This uses nodes with x and y coordinates.
 Also we provide a script for graph generation by sampling nodes in a cartesian space which can be used for further exploration.
 
+
+## Dependencies
+
+![MPI](https://img.shields.io/badge/MPI-MPICH%203.2-blue?style=flat-square)
+![OpenMP](https://img.shields.io/badge/OpenMP-Enabled-green?style=flat-square)
+![PBS](https://img.shields.io/badge/PBS-Scheduler-orange?style=flat-square)
+
+## Cluster Configuration
+
+| Resource | Specification |
+|----------|---------------|
+| Nodes | 1-32 compute nodes |
+| Memory | 16GB-512GB per node |
+| Queue | short_cpuQ |
+| Wall Time | 1:00 hour max |
+| MPI Processes | 2-32 per node |
+| OpenMP Threads | 2-16 per process |
+
+## How to Run
+TODO
+
+## Performance Analysis
+
+The project includes comprehensive performance analysis tools:
+- Speedup measurements
+- Efficiency calculations
+- Scalability analysis
+- Resource utilization metrics
+
+## Scripts
+
+| Script | Description |
+|--------|-------------|
+| `run.sh` | Runs the specified algorithm |
+
+## Future Improvements
+
+- Animator for visualizing the results
+- Optimize communication overhead with multiple threads
