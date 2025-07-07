@@ -113,7 +113,7 @@ In the shell script to submit the jobs to the cluster, the resulting commands to
 **OpenMP Version** (e.g., using 4 threads)
   ```bash
   export OMP_NUM_THREADS=4 
-  mpirun -n 1 
+  mpirun -n 1 ./omp
   ```
 
 **Hybrid Version** (e.g., 2 MPI processes, each with 4 threads)
