@@ -72,7 +72,55 @@ Also we provide a script for graph generation by sampling nodes in a cartesian s
 | MPI Processes | 1-64 per node |
 | OpenMP Threads | 1-64 per process |
 
-## How to Run
+## Build and Run
+
+To compile and run the different versions of the program, use the following commands:
+
+**Serial Version**
+```bash
+gcc serial.c -o serial -lm
+```
+
+**MPI Version**
+```bash
+mpicc -g -Wall -o mpi mpi.c -lm
+```
+
+**OpenMP Version**
+```bash
+gcc -fopenmp -o omp omp.c -lm
+```
+
+**Hybrid MPI + OpenMP Version**
+```bash
+mpicc -g -Wall -fopenmp -o hybrid hybrid.c -lm
+```
+
+### Run Examples
+
+In the shell script to submit the jobs to the cluster, the resulting commands to run the files will be:
+
+**Serial Version**
+  ```bash
+  mpirun -n 1 ./serial
+  ```
+
+**MPI Version** (e.g., using 4 processes)
+  ```bash
+  mpirun -n 4 ./mpi
+  ```
+
+**OpenMP Version** (e.g., using 4 threads)
+  ```bash
+  export OMP_NUM_THREADS=4 
+  mpirun -n 1 
+  ```
+
+**Hybrid Version** (e.g., 2 MPI processes, each with 4 threads)
+  ```bash
+  export OMP_NUM_THREADS=4 
+  mpirun.actual -n 2 -ppn 4 ./hybrid
+  ```
 
 
 ## Performance Analysis
