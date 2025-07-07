@@ -1,7 +1,7 @@
 
 # General
 debug
-
+data/results/**
 # Python
 **/__pycache__
 **/.DS_Store
