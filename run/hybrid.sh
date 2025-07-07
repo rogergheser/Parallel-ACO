@@ -22,5 +22,5 @@ for NODE in "${NODES[@]}"; do
     echo "Running $NODE"
     {   time mpirun.actual -n $NODE \
         -ppn $OMP_NUM_THREADS \
-        parallel; } 2>> "time/hybrid.txt"
+        hybrid; } 2>> "time/hybrid.txt"
 done
