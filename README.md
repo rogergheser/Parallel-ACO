@@ -15,6 +15,7 @@ famo dopo
 - **Animator**: [IN PROGRESS] A tool to animate the operations on the graph
 
 ## Project Structure
+```bash
 ├── animators           # Work in progress
 ├── data                # Run results
 │   └── results
@@ -37,7 +38,7 @@ famo dopo
 │   ├── plot_times.py   # Script to plot execution times
 │   └── plotting.py     # Script to plotting performance metrics
 └── tsplib         # TSPLIB dataset
-
+```
 ## Datasets
 We use the following datasets for testing:
 * [TSPLIB](https://github.com/mastqe/tsplib)
