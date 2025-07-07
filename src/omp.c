@@ -7,7 +7,7 @@
 #include <string.h>
 #include <omp.h>
 
-#define NUM_ANTS 128        // [50, 800]
+#define NUM_ANTS 1024        // [50, 800]
 #define NUM_ITERATIONS 10
 #define ALPHA 4.0           // [3.0, 5.0]
 #define BETA 3.0            // 3.0
@@ -80,7 +80,7 @@ void init_tsp() {
             double dx, dy;
             idx = getIndex(i, j);
             dx = x_coords[i] - x_coords[j];
-            dy = x_coords[i] - y_coords[j];
+            dy = y_coords[i] - y_coords[j];
             distance[idx] = sqrt(dx * dx + dy * dy);
             pheromones[idx] = 1.0;
         }
@@ -106,8 +106,6 @@ int select_next_city(int current_city, int *visited) {
             double eta = pow(1.0 / distance[idx], BETA);
             probabilities[i] = tau * eta;
             sum += probabilities[i];
-        } else {
-            probabilities[i] = 0.0;
         }
     }
 
@@ -247,7 +245,7 @@ int main() {
             best_cost = local_best;
             memcpy(best_tour, local_best_tour, NUM_CITIES * sizeof(int));
         }
-        printf("Iteration %d: Best Cost = %f\n", iter + 1, best_cost);
+        //printf("Iteration %d: Best Cost = %f\n", iter + 1, best_cost);
 
         update_pheromones(ant_tours);
     }
@@ -255,8 +253,9 @@ int main() {
     gettimeofday(&end, NULL);
     double elapsed = (end.tv_sec - start.tv_sec) + (end.tv_usec - start.tv_usec) / 1e6;
 
-    printf("Best Tour Length: %lf\n", best_cost);
-    printf("Time: %.6f\n", elapsed);
+    //printf("Best Tour Length: %lf\n", best_cost);
+    //printf("Time: %.6f\n", elapsed);
+    printf("OMP,%d,%d,1,%d,%.6f,%lf\n", NUM_CITIES, NUM_ANTS, omp_get_num_threads(), elapsed, best_cost);
 
     free(ant_tours);
     free(distance);

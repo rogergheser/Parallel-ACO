@@ -15,7 +15,6 @@ famo dopo
 - **Animator**: [IN PROGRESS] A tool to animate the operations on the graph
 
 ## Project Structure
-├── animate.py          # Work in progress
 ├── animators           # Work in progress
 ├── data                # Run results
 │   └── results
@@ -24,7 +23,7 @@ famo dopo
 │   └── parallelACO.c
 ├── src # Working implementations
 │   ├── hybrid.c         # Hybrid MPI+OpenMP implementation
-│   ├── mpi.c       # Parallel MPI implementation
+│   ├── mpi.c            # Parallel MPI implementation
 │   ├── omp.c            # OpenMP implementation
 │   └── serial.c         # Serial ACO implementation
 ├── README.md
@@ -33,9 +32,10 @@ famo dopo
 │   ├── parallel.sh
 │   └── serial.sh
 ├── tools           # Tools for performance analysis
+│   ├── animate.py      # Work in progress
 │   ├── gen_graph.py    # Script to generate graphs
-│   ├── plot_times.py    # Script to plot execution times
-│   └── plotting.py      # Script to plotting performance metrics
+│   ├── plot_times.py   # Script to plot execution times
+│   └── plotting.py     # Script to plotting performance metrics
 └── tsplib         # TSPLIB dataset
 
 ## Datasets

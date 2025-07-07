@@ -6,16 +6,16 @@
 #include <sys/time.h>
 #include <string.h>
 
-#define NUM_ANTS 128        // [50, 800]
+#define NUM_ANTS 1024        // [50, 800]
 #define NUM_ITERATIONS 10
 #define ALPHA 4.0           // [3.0, 5.0]
 #define BETA 3.0            // 3.0
 #define EVAPORATION 0.9     // [0.4, 1.0] - 0.8 - Dorigo et al. found 0.99 for TSP
 #define Q 100.0
-#define NUM_CITIES 783      // 783
+#define NUM_CITIES 2048      // 783
 #define MATRIX_DIM ((NUM_CITIES * (NUM_CITIES - 1)) / 2) // Triangular matrix size
 
-char* filename = "./pACO/tsplib/rat783.tsp";
+char* filename = "./pACO/tsplib/d15112.tsp";
 int num_cities;
 double* distance;
 double* pheromones;
@@ -81,7 +81,7 @@ void init_tsp() {
             double dx, dy;
             idx = getIndex(i, j);
             dx = x_coords[i] - x_coords[j];
-            dy = x_coords[i] - y_coords[j];
+            dy = y_coords[i] - y_coords[j];
             distance[idx] = sqrt(dx * dx + dy * dy);
             pheromones[idx] = 1.0;
         }
@@ -107,8 +107,6 @@ int select_next_city(int current_city, int *visited) {
             double eta = pow(1.0 / distance[idx], BETA);
             probabilities[i] = tau * eta;
             sum += probabilities[i];
-        } else {
-            probabilities[i] = 0.0;
         }
     }
 
@@ -184,9 +182,6 @@ void update_pheromones(AntTour* ant_tours) {
                 from = to;
                 to = temp;
             }
-            
-            idx = getIndex(from, to);
-            pheromones[idx] += contribution;
             if (from != to) {
                 idx = getIndex(from, to);
                 pheromones[idx] += contribution;
@@ -221,7 +216,7 @@ int main() {
                 memcpy(best_tour, ant_tours[i].tour, NUM_CITIES * sizeof(int));
             }
         }
-        printf("Iteration %d: Best Cost = %f\n", iter + 1, best_cost);
+        //printf("Iteration %d: Best Cost = %f\n", iter + 1, best_cost);
 
         update_pheromones(ant_tours);
     }
@@ -229,7 +224,7 @@ int main() {
     gettimeofday(&end, NULL);
     double elapsed = (end.tv_sec - start.tv_sec) + (end.tv_usec - start.tv_usec) / 1e6;
 
-    printf("Best Tour Length: %lf\n", best_cost);
+    //printf("Best Tour Length: %lf\n", best_cost);
     /*
     printf("Best Tour Path: ");
     for (i = 0; i < NUM_CITIES; i++) {
@@ -237,7 +232,8 @@ int main() {
     }
     printf("\n");
     */
-    printf("Time: %.6f \n", elapsed);
+    //printf("Time: %.6f \n", elapsed);
+    printf("SERIAL,%d,%d,1,1,%.6f,%lf\n", NUM_CITIES, NUM_ANTS, elapsed, best_cost);
     
     free(ant_tours);
     free(distance);

@@ -1,12 +1,3 @@
-/*
-This is the parallel implementation where all nodes are working together
-TODO:
-
-    - use openmp
-    - do hybrid
-    - check todo at line 229 (in function update_pheromones)
-    - use all reduce to minimise the tour cost
-*/
 #include <stdio.h>
 #include <stdlib.h>
 #include <stddef.h>
@@ -22,12 +13,12 @@ TODO:
 #define BETA 3.0            // 3.0
 #define EVAPORATION 0.9     // [0.4, 1.0] - 0.8 - Dorigo et al. found 0.99 for TSP
 #define Q 100.0
-#define NUM_CITIES 783      // 783
+#define NUM_CITIES 2048      // 783
 #define MATRIX_DIM ((NUM_CITIES * (NUM_CITIES - 1)) / 2) // Triangular matrix size
 
-char* filename = "./pACO/tsplib/rat783.tsp";  //rat783
-double *distance;
-double *pheromones;
+char* filename = "./pACO/tsplib/d15112.tsp";  //rat783
+double* distance;
+double* pheromones;
 double* local_contr;
 int visited[NUM_CITIES];
 double probabilities[NUM_CITIES];
@@ -104,7 +95,7 @@ void init_tsp() {
             double dx, dy;
             idx = getIndex(i, j);
             dx = x_coords[i] - x_coords[j];
-            dy = x_coords[i] - y_coords[j];
+            dy = y_coords[i] - y_coords[j];
             distance[idx] = sqrt(dx * dx + dy * dy);
             pheromones[idx] = 1.0;
         }
@@ -130,8 +121,6 @@ int select_next_city(int current_city, int *visited) {
             double eta = pow(1.0 / distance[idx], BETA);
             probabilities[i] = tau * eta;
             sum += probabilities[i];
-        } else {
-            probabilities[i] = 0.0;
         }
     }
 
@@ -273,12 +262,12 @@ int main() {
                     memcpy(best_tour, all_tours[i].tour, NUM_CITIES * sizeof(int));
                 }
             }
-            printf("Iteration %d: Best Cost = %f\n", iter + 1, best_cost);
+            //printf("Iteration %d: Best Cost = %f\n", iter + 1, best_cost);
             
             evaporate_pheromones(all_tours);
             free(all_tours);
         }
- 
+        MPI_Bcast(pheromones, MATRIX_DIM, MPI_DOUBLE, 0, MPI_COMM_WORLD);
         double* total_contribution = (double *)malloc(MATRIX_DIM * sizeof(double));
         MPI_Allreduce(local_contr, total_contribution, MATRIX_DIM, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
 
@@ -291,7 +280,7 @@ int main() {
 
     if (comm_rank == 0) {
         end_time = MPI_Wtime();
-        printf("Best Tour Length: %lf\n", best_cost);
+        //printf("Best Tour Length: %lf\n", best_cost);
         /*
         printf("Best Tour Path: ");
         for (i = 0; i < NUM_CITIES; i++) {
@@ -299,7 +288,8 @@ int main() {
         }
         printf("\n");
         */
-        printf("Time: %lf\n", end_time - start_time);
+        //printf("Time: %lf\n", end_time - start_time);
+        printf("MPI,%d,%d,%d,1,%lf,%lf\n", NUM_CITIES, NUM_ANTS, comm_size, end_time - start_time, best_cost);
     }
 
     MPI_Type_free(&tourType);
