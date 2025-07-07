@@ -65,15 +65,15 @@ Also we provide a script for graph generation by sampling nodes in a cartesian s
 
 | Resource | Specification |
 |----------|---------------|
-| Nodes | 1-32 compute nodes |
-| Memory | 16GB-512GB per node |
+| Nodes | 1-4 compute nodes |
+| Memory | 16GB per node |
 | Queue | short_cpuQ |
-| Wall Time | 1:00 hour max |
-| MPI Processes | 2-32 per node |
-| OpenMP Threads | 2-16 per process |
+| Wall Time | 4:00 hour max |
+| MPI Processes | 1-64 per node |
+| OpenMP Threads | 1-64 per process |
 
 ## How to Run
-TODO
+
 
 ## Performance Analysis
 
